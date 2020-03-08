@@ -8,6 +8,9 @@ aws_secret_access_key=ACCESS_KEY
 import boto3
 from botocore.exceptions import ClientError
 
+ORIGINALS_BUCKET = "originalvideos"
+MODIFIED_BUCKET = "modifiedvideos"
+
 
 def upload_file(file_name, bucket):
     """
@@ -41,7 +44,14 @@ def list_files(bucket):
     contents = []
     try:
         for item in s3.list_objects(Bucket=bucket)['Contents']:
-            contents.append(item)
+            if bucket == ORIGINALS_BUCKET:
+                contents.append(item['Key'])
+            else:
+                # https://modifiedvideos.s3.amazonaws.com/uploads/SampleVideos2.mp4
+                print(item['Key'])
+                url = "https://%s.s3.amazonaws.com/%s" % (bucket, item['Key'])
+                print(url)
+                contents.append(url)
     except Exception:
         pass
 

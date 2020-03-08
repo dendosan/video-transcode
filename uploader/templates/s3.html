@@ -19,18 +19,18 @@
           <ul>
             {% for item in originals %}
             <li>
-            <a href="/download/{{ item.Key }}"> {{ item.Key }} </a>
+            <a href="/download/{{ item }}"> {{ item }} </a>
             </li>
             {% endfor %}
           </ul>
         </div>
         <div>
-          <h3>These are your converted files:</h3>
+          <h3>These are your modified files:</h3>
           <p>Click on the filename to download it.</p>
           <ul>
-            {% for item in converted %}
+            {% for item in modified %}
             <li>
-            <a href="/converted/{{ item.Key }}"> {{ item.Key }} </a>
+            <a href="{{ item }}" target="_blank"> {{ item }} </a>
             </li>
             {% endfor %}
           </ul>
