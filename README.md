@@ -12,12 +12,13 @@ A python excercise in uploading an mp4 file to an s3 bucket and triggering a lam
 
 ## Setup
 
-- Create two s3 buckets names "originalvideos" and "modifiedvideos"
+- Create two s3 buckets names `originalvideos` and `modifiedvideos`
+- The `modifiedvideos` bucket must have `Block public access` setting turned **off**
 
 # uploader
 
 Simple python application running flask. A form is rendered allowing the user to input an mp4 file.
-Submitting the mp4 causes the file to be uploaded to an s3 bucket called "originalvideos"
+Submitting the mp4 causes the file to be uploaded to an s3 bucket called `originalvideos`
 
 ## Install and Run
 
@@ -51,5 +52,5 @@ $ pipenv shell
 
 # converter
 
-An AWS Lambda written in python that is triggered when new files are created in the AWS bucket called "originalvideos".
-Once triggered, ffmpeg is used to generate various formats of the mp4 and places these new videos in AWS bucket called "modifiedvideos".
+An AWS Lambda written in python that is triggered when new files are created in the AWS bucket called `originalvideos`.
+Once triggered, ffmpeg is used to generate various formats of the mp4 and places these new videos in AWS bucket called `modifiedvideos`.
