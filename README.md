@@ -42,10 +42,12 @@ $ pipenv shell
 ```
 
 - The uploader is now running at `http://127.0.0.1:5000`
+- Choose a file with extension `.mp4` and click `Upload`
+- **Note: Depending on the size of the mp4 (I used short and small ~5MB 30s videos to test) conversion could take 3 minutes or more!**
 
 ## Screenshot of running Application
 
-![Screenshot of app](https://github.com/dendosan/video-transcode/raw/master/docs/images/ApplicationImage1.png)
+![Screenshot of app 3in width](https://github.com/dendosan/video-transcode/raw/master/docs/images/ApplicationImage1.png)
 
 # converter
 
