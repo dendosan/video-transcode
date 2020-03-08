@@ -5,12 +5,14 @@ from s3_util import list_files, download_file, upload_file
 app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
 BUCKET = "originalvideos"
+CONVERTED_BUCKET = "modifiedvideos"
 
 
 @app.route("/")
 def entry_point():
-    contents = list_files(BUCKET)
-    return render_template('s3.html', contents=contents)
+    originals = list_files(BUCKET)
+    converted = list_files(CONVERTED_BUCKET)
+    return render_template('s3.html', originals=originals, converted=converted)
 
 
 @app.route("/upload", methods=['POST'])
@@ -27,6 +29,14 @@ def upload():
 def download(filename):
     if request.method == 'GET':
         output = download_file(filename, BUCKET)
+
+        return send_file(output, as_attachment=True)
+
+
+@app.route("/converted/uploads/<filename>", methods=['GET'])
+def converted(filename):
+    if request.method == 'GET':
+        output = download_file(filename, CONVERTED_BUCKET)
 
         return send_file(output, as_attachment=True)
 
