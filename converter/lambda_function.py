@@ -36,6 +36,7 @@ def convert_file_360(file_name, file_loc):
                '-ac', '2', '-ar', '44100', '-b:v', '1.3M', '-b:a', '128k', '-y', '-vf', 'scale=640x360', file_name]
     p = subprocess.Popen(command)
     output = p.communicate()
+    print(f"Converted {file_loc} to scale=640x360")
     return output
 
 
@@ -45,6 +46,7 @@ def convert_file_720(file_name, file_loc):
                '-ac', '2', '-ar', '44100', '-b:v', '3.5M', '-b:a', '128k', '-y', '-vf', 'scale=1280x720', file_name]
     p = subprocess.Popen(command)
     output = p.communicate()
+    print(f"Converted {file_loc} to scale=1280x720")
     return output
 
 
@@ -54,6 +56,7 @@ def convert_file_540(file_name, file_loc):
                '-ac', '2', '-ar', '44100', '-b:v', '2.5M', '-b:a', '128k', '-y', '-vf', 'scale=960x540', file_name]
     p = subprocess.Popen(command)
     output = p.communicate()
+    print(f"Converted {file_loc} to scale=960x540")
     return output
 
 
@@ -63,15 +66,20 @@ def convert_file_480(file_name, file_loc):
                '-ac', '2', '-ar', '44100', '-b:v', '1.8M', '-b:a', '128k', '-y', '-vf', 'scale=848x480', file_name]
     p = subprocess.Popen(command)
     output = p.communicate()
+    print(f"Converted {file_loc} to scale=848x480")
     return output
 
 
-def lambda_handler(event, context):
-    print("Clearing /tmp folder...")
-    for root, dirs, files in os.walk('/tmp'):
+def clean_tmp_folder():
+    print("Cleaning /tmp folder...")
+    for root, _, files in os.walk('/tmp'):
         for name in files:
             print(f"Deleting temp file {name}")
             os.remove(os.path.join(root, name))
+
+
+def lambda_handler(event, context):
+    clean_tmp_folder()
 
     for record in event['Records']:
         source_bucket = record['s3']['bucket']['name']
@@ -108,56 +116,39 @@ def lambda_handler(event, context):
             # extension = mp4
             # new_key_path_and_name should be /uploads/<VideoName>_<NewFormat>.mp4
 
-            # 640x360
-            new_key_path_and_name = f"{orig_key_base}_360.{extension}"
-            new_temp_path_and_name = f"{temp_file_base}_360.{extension}"
-            convert_file_360(new_temp_path_and_name, temp_path_and_name)
-            print(f"Converted {temp_path_and_name} to scale=640x360")
-            print(
-                f"Copying {new_temp_path_and_name} to {target_bucket} bucket")
-            with open(new_temp_path_and_name, "rb") as f:
-                s3.upload_fileobj(f, target_bucket, new_key_path_and_name,
-                                  ExtraArgs={'ACL': 'public-read'})
+            new_heights = ['360', '480', '540', '720']
 
-            # 848x480
-            new_key_path_and_name = f"{orig_key_base}_480.{extension}"
-            new_temp_path_and_name = f"{temp_file_base}_480.{extension}"
-            convert_file_480(new_temp_path_and_name, temp_path_and_name)
-            print(f"Converted {temp_path_and_name} to scale=848x480")
-            print(
-                f"Copying {new_temp_path_and_name} to {target_bucket} bucket")
-            with open(new_temp_path_and_name, "rb") as f:
-                s3.upload_fileobj(f, target_bucket, new_key_path_and_name,
-                                  ExtraArgs={'ACL': 'public-read'})
+            for new_height in new_heights:
 
-            # 960x540
-            new_key_path_and_name = f"{orig_key_base}_540.{extension}"
-            new_temp_path_and_name = f"{temp_file_base}_540.{extension}"
-            convert_file_540(new_temp_path_and_name, temp_path_and_name)
-            print(f"Converted {temp_path_and_name} to scale=960x540")
-            print(
-                f"Copying {new_temp_path_and_name} to {target_bucket} bucket")
-            with open(new_temp_path_and_name, "rb") as f:
-                s3.upload_fileobj(f, target_bucket, new_key_path_and_name,
-                                  ExtraArgs={'ACL': 'public-read'})
+                new_key_path_and_name = f"{orig_key_base}_{new_height}.{extension}"
+                new_temp_path_and_name = f"{temp_file_base}_{new_height}.{extension}"
 
-            # 1280x720
-            new_key_path_and_name = f"{orig_key_base}_720.{extension}"
-            new_temp_path_and_name = f"{temp_file_base}_720.{extension}"
-            convert_file_720(new_temp_path_and_name, temp_path_and_name)
-            print(f"Converted {temp_path_and_name} to scale=1280x720")
-            print(
-                f"Copying {new_temp_path_and_name} to {target_bucket} bucket")
-            with open(new_temp_path_and_name, "rb") as f:
-                s3.upload_fileobj(f, target_bucket, new_key_path_and_name,
-                                  ExtraArgs={'ACL': 'public-read'})
+                # 640x360
+                if new_height == '360':
+                    convert_file_360(new_temp_path_and_name,
+                                     temp_path_and_name)
+                # 848x480
+                if new_height == '480':
+                    convert_file_480(new_temp_path_and_name,
+                                     temp_path_and_name)
+                # 960x540
+                if new_height == '540':
+                    convert_file_540(new_temp_path_and_name,
+                                     temp_path_and_name)
+                # 1280x720
+                if new_height == '720':
+                    convert_file_720(new_temp_path_and_name,
+                                     temp_path_and_name)
 
-            # Clear /tmp folder
-            print("Clearing /tmp folder...")
-            for root, dirs, files in os.walk('/tmp'):
-                for name in files:
-                    print(f"Deleting temp file {name}")
-                    os.remove(os.path.join(root, name))
+                print(
+                    f"Copying {new_temp_path_and_name} to {target_bucket} bucket")
+                with open(new_temp_path_and_name, "rb") as f:
+                    s3.upload_fileobj(f, target_bucket, new_key_path_and_name,
+                                      ExtraArgs={'ACL': 'public-read'})
+
+            # Clean /tmp folder
+            clean_tmp_folder()
+
         except Exception as e:
             print(e)
             print(f"Error getting object {key} from bucket {source_bucket}")

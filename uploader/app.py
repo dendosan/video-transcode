@@ -33,13 +33,5 @@ def download(filename):
         return send_file(output, as_attachment=True)
 
 
-# @app.route("/modified/uploads/<filename>", methods=['GET'])
-# def modified(filename):
-#     if request.method == 'GET':
-#         output = download_file(filename, MODIFIED_BUCKET)
-
-#         return send_file(output, as_attachment=True)
-
-
 if __name__ == '__main__':
     app.run(debug=True)
