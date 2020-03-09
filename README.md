@@ -50,6 +50,10 @@ $ pipenv shell
 
 ![Screenshot of app 3in width](https://github.com/dendosan/video-transcode/raw/master/docs/images/ApplicationImage1.png)
 
+## A test video is located in the repo:
+
+`https://github.com/dendosan/video-transcode/raw/master/docs/videos/SampleVideos2.mp4`
+
 # converter
 
 An AWS Lambda written in python that is triggered when new files are created in the AWS bucket called `originalvideos`.
