@@ -54,3 +54,21 @@ $ pipenv shell
 
 An AWS Lambda written in python that is triggered when new files are created in the AWS bucket called `originalvideos`.
 Once triggered, ffmpeg is used to generate various formats of the mp4 and places these new videos in AWS bucket called `modifiedvideos`.
+
+## AWS Setup
+
+- Create lambda using Python 3.7 environment. I called mine `VideoConvert`.
+- Copy the code in convert/lambda_function.py into the lambda by `Edit code inline`
+- For this lambda, there were technical hurdles using ffmpeg. The easiest way I could find around these hurdles was to create two zip files and upload them as two Layers to the lambda. These had to be done in two zip files because of the limitations on size for Layers.
+
+  - **ffmpeg.zip** contains only the **ffmpeg** executable obtained from: `https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz`
+  - **ffprobe.zip** contains only the **ffprobe** executable from the same tarball.
+
+- Add a Trigger to the lambda that triggers on ObjectCreated events on the `originalvideos` bucket.
+- The S3 bucket `modifiedvideos` must have the `Block public access` disabled so the modified videos can be accessible.
+
+# Potential Enhancements
+
+- delete operation from uploader.
+- allow the ffmpeg options to be passed in from uploader.
+- parallel processing of ffmpeg conversions.
