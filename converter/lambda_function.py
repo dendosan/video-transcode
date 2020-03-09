@@ -28,45 +28,33 @@ def get_video_info(fileloc):
             'duration': out[3]}
 
 
-# For all files H.264 Video Codec, Video Bitrate Mode "CBR", Scene Detection False,
-# AAC Audio Codec, LC Audio Profile, 2 Audio Channels, Audio Sample Rate 44100, Audio Bitrate Mode "CBR"
-def convert_file_360(file_name, file_loc):
-    # 640x360 Resolution, Video Bitrate 1300000, Profile "Main", Level 3.0, GOP Size 60, Framerate 29.97, Audio Bitrate 128000
-    command = [FFMPEG_STATIC, '-i', file_loc, '-c:v', 'libx264', '-profile:v', 'main', '-level:v', '3.0', '-g', '60', '-filter:v', 'fps=29.97', '-c:a', 'aac',
-               '-ac', '2', '-ar', '44100', '-b:v', '1.3M', '-b:a', '128k', '-y', '-vf', 'scale=640x360', file_name]
-    p = subprocess.Popen(command)
+def convert_file(new_height, in_file, out_file):
+    # For all files H.264 Video Codec, Video Bitrate Mode "CBR", Scene Detection False,
+    # AAC Audio Codec, LC Audio Profile, 2 Audio Channels, Audio Sample Rate 44100, Audio Bitrate Mode "CBR"
+
+    DEFAULT_SETTINGS = ['-i', in_file, '-c:v', 'libx264', '-profile:v', 'main', '-g', '60', '-filter:v', 'fps=29.97', '-c:a', 'aac',
+                        '-ac', '2', '-ar', '44100', '-b:a', '128k', '-y']
+    CUSTOM_SETTINGS = []
+    if new_height == '360':
+        CUSTOM_SETTINGS += ['-level:v', '3.0',
+                            '-b:v', '1.3M', '-vf', 'scale=640x360']
+    if new_height == '480':
+        CUSTOM_SETTINGS += ['-level:v', '3.1',
+                            '-b:v', '1.8M', '-vf', 'scale=848x480']
+    if new_height == '540':
+        CUSTOM_SETTINGS += ['-level:v', '3.1',
+                            '-b:v', '2.5M', '-vf', 'scale=960x540']
+    if new_height == '720':
+        CUSTOM_SETTINGS += ['-level:v', '3.1',
+                            '-b:v', '3.5M', '-vf', 'scale=1280x720']
+
+    COMMAND = [FFMPEG_STATIC, *DEFAULT_SETTINGS, *CUSTOM_SETTINGS, out_file]
+
+    print(COMMAND)
+
+    p = subprocess.Popen(COMMAND)
     output = p.communicate()
-    print(f"Converted {file_loc} to scale=640x360")
-    return output
-
-
-def convert_file_720(file_name, file_loc):
-    # 1280x720 Resolution, Video Bitrate 3500000, , Profile "Main", Level 3.1, GOP Size 60, Framerate 29.97, Audio Bitrate 128000
-    command = [FFMPEG_STATIC, '-i', file_loc, '-c:v', 'libx264', '-profile:v', 'main', '-level:v', '3.1', '-g', '60', '-filter:v', 'fps=29.97', '-c:a', 'aac',
-               '-ac', '2', '-ar', '44100', '-b:v', '3.5M', '-b:a', '128k', '-y', '-vf', 'scale=1280x720', file_name]
-    p = subprocess.Popen(command)
-    output = p.communicate()
-    print(f"Converted {file_loc} to scale=1280x720")
-    return output
-
-
-def convert_file_540(file_name, file_loc):
-    # 960x540 Resolution, Video Bitrate 2500000, , Profile "Main", Level 3.1, GOP Size 60, Framerate 29.97, Audio Bitrate 128000
-    command = [FFMPEG_STATIC, '-i', file_loc, '-c:v', 'libx264', '-profile:v', 'main', '-level:v', '3.1', '-g', '60', '-filter:v', 'fps=29.97', '-c:a', 'aac',
-               '-ac', '2', '-ar', '44100', '-b:v', '2.5M', '-b:a', '128k', '-y', '-vf', 'scale=960x540', file_name]
-    p = subprocess.Popen(command)
-    output = p.communicate()
-    print(f"Converted {file_loc} to scale=960x540")
-    return output
-
-
-def convert_file_480(file_name, file_loc):
-    # 848x480 Resolution, Video Bitrate 1800000, , Profile "Main", Level 3.1, GOP Size 60, Framerate 29.97, Audio Bitrate 128000
-    command = [FFMPEG_STATIC, '-i', file_loc, '-c:v', 'libx264', '-profile:v', 'main', '-level:v', '3.1', '-g', '60', '-filter:v', 'fps=29.97', '-c:a', 'aac',
-               '-ac', '2', '-ar', '44100', '-b:v', '1.8M', '-b:a', '128k', '-y', '-vf', 'scale=848x480', file_name]
-    p = subprocess.Popen(command)
-    output = p.communicate()
-    print(f"Converted {file_loc} to scale=848x480")
+    print(f"Converted {in_file} to new height = {new_height}")
     return output
 
 
@@ -110,7 +98,6 @@ def lambda_handler(event, context):
             # temp_path_and_name = /tmp/temp.mp4
             # temp_file_base = /tmp/temp
             # new_temp_path_and_name = /tmp/temp_<NewFormat>.mp4
-
             # key = /uploads/<VideoName>.mp4
             # orig_key_base = /uploads/<VideoName>
             # extension = mp4
@@ -123,22 +110,9 @@ def lambda_handler(event, context):
                 new_key_path_and_name = f"{orig_key_base}_{new_height}.{extension}"
                 new_temp_path_and_name = f"{temp_file_base}_{new_height}.{extension}"
 
-                # 640x360
-                if new_height == '360':
-                    convert_file_360(new_temp_path_and_name,
-                                     temp_path_and_name)
-                # 848x480
-                if new_height == '480':
-                    convert_file_480(new_temp_path_and_name,
-                                     temp_path_and_name)
-                # 960x540
-                if new_height == '540':
-                    convert_file_540(new_temp_path_and_name,
-                                     temp_path_and_name)
-                # 1280x720
-                if new_height == '720':
-                    convert_file_720(new_temp_path_and_name,
-                                     temp_path_and_name)
+                # [640x360, 848x480, 960x540, 1280x720]
+                convert_file(new_height, temp_path_and_name,
+                             new_temp_path_and_name)
 
                 print(
                     f"Copying {new_temp_path_and_name} to {target_bucket} bucket")
